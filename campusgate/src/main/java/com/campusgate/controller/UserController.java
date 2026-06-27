@@ -16,9 +16,11 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final com.campusgate.service.AuthService authService;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, com.campusgate.service.AuthService authService) {
         this.userService = userService;
+        this.authService = authService;
     }
 
     @GetMapping
@@ -43,5 +45,11 @@ public class UserController {
     @GetMapping("/me")
     public ResponseEntity<UserDTO> getMyProfile(@AuthenticationPrincipal UserDetailsImpl userDetails) {
         return ResponseEntity.ok(userService.getUserById(userDetails.getId()));
+    }
+
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UserDTO> createUser(@jakarta.validation.Valid @RequestBody com.campusgate.dto.RegisterRequest request) {
+        return new ResponseEntity<>(authService.register(request), org.springframework.http.HttpStatus.CREATED);
     }
 }
