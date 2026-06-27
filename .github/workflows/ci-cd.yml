@@ -51,9 +51,6 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Make Maven Wrapper Executable
-        run: chmod +x mvnw
-
       - name: Run Maven Build and Tests
         env:
           DB_URL: jdbc:postgresql://localhost:5432/campusgate
@@ -63,7 +60,7 @@ jobs:
           REDIS_PORT: 6379
           JWT_SECRET: test_jwt_secret_key_needs_to_be_at_least_256_bits_for_signature_validation_12345
           JWT_EXPIRATION: 86400000
-        run: ./mvnw clean verify
+        run: mvn clean verify
 
       - name: Build Docker Image (Dry Run)
         run: docker build -t campusgate:latest .
