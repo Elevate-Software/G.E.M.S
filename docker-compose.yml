@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - JWT_SECRET=${JWT_SECRET:-8a3c8e426541f5341a0293db7a6058cfd795b9b7a42ec16413d7d7f766e481c0}
+      - DB_URL=jdbc:postgresql://db:5432/campusgate
+      - DB_USER=campus_admin
+      - DB_PASS=campus_pass
+      - REDIS_HOST=redis
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - campus-net
+
+  db:
+    image: postgres:15-alpine
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_DB=campusgate
+      - POSTGRES_USER=campus_admin
+      - POSTGRES_PASSWORD=campus_pass
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U campus_admin -d campusgate"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - campus-net
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - campus-net
+
+networks:
+  campus-net:
+    driver: bridge
