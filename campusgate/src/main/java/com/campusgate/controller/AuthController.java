@@ -37,4 +37,15 @@ public class AuthController {
         }
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<Void> changePassword(@RequestBody java.util.Map<String, String> request, @org.springframework.security.core.annotation.AuthenticationPrincipal com.campusgate.security.UserDetailsImpl userDetails) {
+        if (userDetails == null) {
+            throw new RuntimeException("Unauthorized");
+        }
+        String currentPassword = request.get("currentPassword");
+        String newPassword = request.get("newPassword");
+        authService.changePassword(userDetails.getId(), currentPassword, newPassword);
+        return ResponseEntity.ok().build();
+    }
 }
