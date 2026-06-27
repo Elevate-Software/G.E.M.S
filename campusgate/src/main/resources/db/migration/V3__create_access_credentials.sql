@@ -1,0 +1,10 @@
+CREATE TABLE access_credentials (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL UNIQUE,
+    auth_token VARCHAR(512) UNIQUE NOT NULL,
+    issue_date TIMESTAMP NOT NULL,
+    expiry_date TIMESTAMP NOT NULL,
+    status VARCHAR(50) NOT NULL CHECK (status IN ('VALID', 'EXPIRED', 'REVOKED')),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);

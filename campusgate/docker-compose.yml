@@ -7,10 +7,10 @@ services:
       - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - JWT_SECRET=${JWT_SECRET:-8a3c8e426541f5341a0293db7a6058cfd795b9b7a42ec16413d7d7f766e481c0}
-      - DB_URL=jdbc:postgresql://db:5432/campusgate
-      - DB_USER=campus_admin
-      - DB_PASS=campus_pass
+      - JWT_SECRET=${JWT_SECRET}
+      - DB_URL=jdbc:postgresql://db:5432/${DB_NAME:-campusgate}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
       - REDIS_HOST=redis
     depends_on:
       db:
@@ -23,13 +23,13 @@ services:
   db:
     image: postgres:15-alpine
     ports:
-      - "5433:5432"
+      - "${DB_PORT:-5433}:5432"
     environment:
-      - POSTGRES_DB=campusgate
-      - POSTGRES_USER=campus_admin
-      - POSTGRES_PASSWORD=campus_pass
+      - POSTGRES_DB=${DB_NAME:-campusgate}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASS}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U campus_admin -d campusgate"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME:-campusgate}"]
       interval: 10s
       timeout: 5s
       retries: 5
