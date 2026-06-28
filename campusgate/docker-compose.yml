@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   app:
     build: .
@@ -13,10 +11,8 @@ services:
       - DB_PASS=${DB_PASS}
       - REDIS_HOST=redis
     depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_started
+      - db
+      - redis
     networks:
       - campus-net
 
@@ -28,11 +24,6 @@ services:
       - POSTGRES_DB=${DB_NAME:-campusgate}
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASS}
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME:-campusgate}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     networks:
       - campus-net
 
