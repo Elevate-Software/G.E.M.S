@@ -2,6 +2,15 @@
 
 CampusGate is a campus entrance management system built with Spring Boot, PostgreSQL, Redis, Flyway, JWT authentication, and a Vite + Solid frontend. The project models a real-world access-control workflow: a student or visitor arrives at a gate, their credential is validated, and the system records the entry event securely.
 
+### Group Members and Documentation
+
+| Name                 | ID           |
+|----------------------|--------------|
+| Peter Kinfe          | ATE/7749/15  |
+| Abdisa Alemu         | ATE/2603/14  |
+| Hailemichael Lijalem | ATE/1051/14  |
+| Beamlak Tibebu       | ATE/3624/14  |
+
 ## Scenario Insight
 
 Imagine a student named Nathan arriving on campus. He logs in to the system, his identity is verified, and when he reaches a gate, the security team can validate his access and record the entry. If access is denied or suspicious, the system can flag the event for review. That is the core flow this project is designed to support.
