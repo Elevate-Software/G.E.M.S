@@ -8,4 +8,5 @@ import java.util.Optional;
 public interface AccessCredentialRepository extends JpaRepository<AccessCredential, Long> {
     Optional<AccessCredential> findByAuthTokenAndStatus(String authToken, CredentialStatus status);
     Optional<AccessCredential> findByUserIdAndStatus(Long userId, CredentialStatus status);
+    Optional<AccessCredential> findByUserId(Long userId);
 }
