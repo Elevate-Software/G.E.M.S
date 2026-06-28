@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -34,22 +33,22 @@ public class CredentialService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Revoke any existing valid credentials
-        Optional<AccessCredential> existing = credentialRepository.findByUserIdAndStatus(userId, CredentialStatus.VALID);
-        if (existing.isPresent()) {
-            AccessCredential old = existing.get();
-            old.setStatus(CredentialStatus.REVOKED);
-            credentialRepository.save(old);
-        }
-
-        // Generate a new credential
-        AccessCredential credential = AccessCredential.builder()
-                .user(user)
-                .authToken(UUID.randomUUID().toString())
-                .issueDate(LocalDateTime.now())
-                .expiryDate(LocalDateTime.now().plusYears(1)) // Expires in 1 year
-                .status(CredentialStatus.VALID)
-                .build();
+        LocalDateTime now = LocalDateTime.now();
+        AccessCredential credential = credentialRepository.findByUserId(userId)
+                .map(existing -> {
+                    existing.setAuthToken(UUID.randomUUID().toString());
+                    existing.setIssueDate(now);
+                    existing.setExpiryDate(now.plusYears(1));
+                    existing.setStatus(CredentialStatus.VALID);
+                    return existing;
+                })
+                .orElseGet(() -> AccessCredential.builder()
+                        .user(user)
+                        .authToken(UUID.randomUUID().toString())
+                        .issueDate(now)
+                        .expiryDate(now.plusYears(1))
+                        .status(CredentialStatus.VALID)
+                        .build());
 
         return mapToDTO(credentialRepository.save(credential));
     }
