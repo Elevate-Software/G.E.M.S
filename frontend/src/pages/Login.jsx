@@ -38,8 +38,11 @@ export default function Login() {
     setLoading(true);
     
     try {
-      const { accessToken } = await apiLogin(email(), password());
-      setToken(accessToken);
+      const loginRes = await apiLogin(email(), password());
+      if (!loginRes?.accessToken) {
+        throw new Error('Login failed: no access token received');
+      }
+      setToken(loginRes.accessToken);
       
       const user = await getMe();
       setUser(user);

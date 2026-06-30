@@ -63,8 +63,11 @@ export default function Register() {
       });
 
       // Auto-login
-      const { accessToken } = await apiLogin(email().trim(), password());
-      setToken(accessToken);
+      const loginRes = await apiLogin(email().trim(), password());
+      if (!loginRes?.accessToken) {
+        throw new Error('Login failed: no access token received');
+      }
+      setToken(loginRes.accessToken);
       
       const user = await getMe();
       setUser(user);
