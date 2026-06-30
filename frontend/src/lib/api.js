@@ -1,15 +1,24 @@
 import { getToken, clearAuth } from './auth.js';
-import { useNavigate } from '@solidjs/router';
 
-const BASE = '/api';
+const BASE = import.meta.env.VITE_API_BASE_URL || '/api';
 
-async function request(path, { method = 'GET', body = null, params = null } = {}) {
-  const url = new URL(`${BASE}${path}`, window.location.origin);
+function buildUrl(path, params) {
+  const fullPath = `${BASE}${path}`;
+  const url = fullPath.startsWith('http')
+    ? new URL(fullPath)
+    : new URL(fullPath, window.location.origin);
+
   if (params) {
     Object.entries(params).forEach(([k, v]) => {
       if (v !== null && v !== undefined && v !== '') url.searchParams.set(k, v);
     });
   }
+
+  return url;
+}
+
+async function request(path, { method = 'GET', body = null, params = null } = {}) {
+  const url = buildUrl(path, params);
 
   const headers = { 'Content-Type': 'application/json' };
   const token = getToken();
@@ -35,6 +44,10 @@ async function request(path, { method = 'GET', body = null, params = null } = {}
   if (!res.ok) {
     const msg = data?.message || data?.error || `Request failed (${res.status})`;
     throw new Error(msg);
+  }
+
+  if (data === null) {
+    throw new Error(`Invalid response from server (${res.status})`);
   }
 
   return data;
