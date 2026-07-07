@@ -6,6 +6,7 @@ import com.campusgate.entity.CredentialStatus;
 import com.campusgate.entity.User;
 import com.campusgate.repository.AccessCredentialRepository;
 import com.campusgate.repository.UserRepository;
+import com.campusgate.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,14 +25,14 @@ public class CredentialService {
 
     public CredentialDTO getMyCredential(Long userId) {
         AccessCredential credential = credentialRepository.findByUserIdAndStatus(userId, CredentialStatus.VALID)
-                .orElseThrow(() -> new RuntimeException("No active credential found"));
+                .orElseThrow(() -> new ResourceNotFoundException("No active credential found"));
         return mapToDTO(credential);
     }
 
     @Transactional
     public CredentialDTO generateCredential(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         LocalDateTime now = LocalDateTime.now();
         AccessCredential credential = credentialRepository.findByUserId(userId)
