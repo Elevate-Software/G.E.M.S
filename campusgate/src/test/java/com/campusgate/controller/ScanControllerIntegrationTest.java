@@ -3,6 +3,7 @@ package com.campusgate.controller;
 import com.campusgate.entity.*;
 import com.campusgate.repository.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,10 +52,7 @@ class ScanControllerIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        entryLogRepository.deleteAll();
-        credentialRepository.deleteAll();
-        userRepository.deleteAll();
-        gateRepository.deleteAll();
+        cleanDb();
 
         operationalGate = gateRepository.save(
                 Gate.builder().gateName("Main Gate").location("North Campus").isOperational(true).build()
@@ -79,7 +77,7 @@ class ScanControllerIntegrationTest {
         return Map.of("gateId", gateId, "token", token, "direction", direction);
     }
 
-    // valid credential → GRANTED
+    // valid credential -> GRANTED
     @Test
     @WithMockUser(roles = "SECURITY")
     void scan_validCredential_shouldGrantAccess() throws Exception {
@@ -101,7 +99,7 @@ class ScanControllerIntegrationTest {
                 .andExpect(jsonPath("$.user.fullName").value("Test Student"));
     }
 
-    // expired token → DENIED
+    // expired token -> DENIED
     @Test
     @WithMockUser(roles = "SECURITY")
     void scan_expiredToken_shouldDenyAccess() throws Exception {
@@ -122,7 +120,7 @@ class ScanControllerIntegrationTest {
                 .andExpect(jsonPath("$.message").value("Token Expired"));
     }
 
-    // unknown token → DENIED
+    // unknown token -> DENIED
     @Test
     @WithMockUser(roles = "SECURITY")
     void scan_invalidToken_shouldDenyAccess() throws Exception {
@@ -135,7 +133,7 @@ class ScanControllerIntegrationTest {
                 .andExpect(jsonPath("$.message").value("Invalid or Revoked Token"));
     }
 
-    // valid token but gate closed → DENIED
+    // valid token but gate closed -> DENIED
     @Test
     @WithMockUser(roles = "SECURITY")
     void scan_validTokenButGateClosed_shouldDenyAccess() throws Exception {
@@ -156,7 +154,7 @@ class ScanControllerIntegrationTest {
                 .andExpect(jsonPath("$.message").value("Gate is not operational"));
     }
 
-    // valid token but account suspended → DENIED
+    // valid token but account suspended -> DENIED
     @Test
     @WithMockUser(roles = "SECURITY")
     void scan_suspendedAccount_shouldDenyAccess() throws Exception {
@@ -188,7 +186,7 @@ class ScanControllerIntegrationTest {
                 .andExpect(jsonPath("$.message").value("Account SUSPENDED"));
     }
 
-    // unauthenticated request → 403 Forbidden
+    // unauthenticated request -> 403 Forbidden
     @Test
     void scan_withoutAuthentication_shouldReturn403() throws Exception {
         mockMvc.perform(post("/api/scan")
@@ -196,5 +194,17 @@ class ScanControllerIntegrationTest {
                         .content(objectMapper.writeValueAsString(
                                 scanRequest(operationalGate.getId(), "any-token", "ENTRY"))))
                 .andExpect(status().isForbidden());
+    }
+
+    @AfterEach
+    void tearDown() {
+        cleanDb();
+    }
+
+    private void cleanDb() {
+        entryLogRepository.deleteAll();
+        credentialRepository.deleteAll();
+        userRepository.deleteAll();
+        gateRepository.deleteAll();
     }
 }
