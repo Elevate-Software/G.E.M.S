@@ -124,7 +124,7 @@ export default function Login() {
               <span class="form-error">{errors().password}</span>
             </div>
 
-            <button type="submit" class="btn btn-primary btn-lg" disabled={loading()}>
+            <button type="submit" id="login-submit" class="btn btn-primary btn-lg" disabled={loading()}>
               {loading() ? <><span class="spinner"></span> Signing in…</> : 'Sign In'}
             </button>
           </form>
