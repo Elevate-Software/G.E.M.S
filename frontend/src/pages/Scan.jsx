@@ -8,10 +8,10 @@ export default function Scan() {
   const [gateId, setGateId] = createSignal(1);
   const [direction, setDirection] = createSignal('ENTRY');
   const [gates, setGates] = createSignal([]);
-  
+
   const [loading, setLoading] = createSignal(false);
   const [gatesLoading, setGatesLoading] = createSignal(false);
-  const [result, setResult] = createSignal(null); // { result: 'GRANTED'|'DENIED', message, user }
+  const [result, setResult] = createSignal(null);
 
   createEffect(() => {
     loadGates();
@@ -42,20 +42,20 @@ export default function Scan() {
     try {
       const res = await scanCredential(token(), gateId(), direction());
       setResult(res);
-      
+
       if (res.result === 'GRANTED') {
         showToast('Access Granted', 'success');
       } else {
         showToast(res.message || 'Access Denied', 'error');
       }
-      
+
       setToken(''); // clear for next scan
     } catch (err) {
       showToast(err.message || 'Scan failed', 'error');
       setResult({ result: 'DENIED', message: err.message || 'System Error' });
     } finally {
       setLoading(false);
-      
+
       // Auto-focus the input again
       const input = document.getElementById('scan-token');
       if (input) input.focus();
@@ -74,10 +74,10 @@ export default function Scan() {
           <div class="scan-options">
             <div class="form-group">
               <label class="form-label" for="scan-gate">Gate</label>
-              <select 
-                id="scan-gate" 
-                class="form-select" 
-                value={gateId()} 
+              <select
+                id="scan-gate"
+                class="form-select"
+                value={gateId()}
                 onChange={(e) => setGateId(parseInt(e.target.value, 10))}
                 disabled={gatesLoading()}
               >
@@ -94,20 +94,20 @@ export default function Scan() {
                 </For>
               </select>
             </div>
-            
+
             <div class="form-group">
               <label class="form-label">Direction</label>
               <div class="toggle-group" style={{ width: '100%', display: 'flex' }}>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   class={`toggle-option ${direction() === 'ENTRY' ? 'active' : ''}`}
                   style={{ flex: 1 }}
                   onClick={() => setDirection('ENTRY')}
                 >
                   ENTRY
                 </button>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   class={`toggle-option ${direction() === 'EXIT' ? 'active' : ''}`}
                   style={{ flex: 1 }}
                   onClick={() => setDirection('EXIT')}
@@ -131,8 +131,8 @@ export default function Scan() {
               disabled={loading()}
             />
           </div>
-          
-          <button type="submit" class="btn btn-primary btn-lg" style={{ width: '100%' }} disabled={loading() || !token().trim()}>
+
+          <button type="submit" id="scan-submit" class="btn btn-primary btn-lg" style={{ width: '100%' }} disabled={loading() || !token().trim()}>
             {loading() ? <><span class="spinner"></span> Processing…</> : 'Manual Scan'}
           </button>
         </form>
@@ -148,7 +148,7 @@ export default function Scan() {
             <div class="scan-result-message">
               {result().message}
             </div>
-            
+
             <Show when={result().user}>
               <div class="scan-result-user">
                 <div class="avatar" style={{ background: 'var(--gradient-surface)' }}>

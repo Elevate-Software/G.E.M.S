@@ -99,7 +99,7 @@ export default function App(props) {
                 <div class="sidebar-user-name">{user()?.fullName || 'User'}</div>
                 <div class="sidebar-user-role">{roleLabel(user()?.role)}</div>
               </div>
-              <button class="btn btn-ghost btn-icon" onClick={handleLogout} title="Log out" style={{ "margin-left": "auto" }}>
+              <button id="sidebar-logout-btn" class="btn btn-ghost btn-icon" onClick={handleLogout} title="Log out" style={{ "margin-left": "auto" }}>
                 🚪
               </button>
             </div>
