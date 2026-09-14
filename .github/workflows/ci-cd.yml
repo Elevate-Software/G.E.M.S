@@ -51,7 +51,7 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Run Maven Build and Tests
+      - name: Run Maven Build, Tests & Coverage
         env:
           DB_URL: jdbc:postgresql://localhost:5432/campusgate
           DB_USER: campus_admin
@@ -61,6 +61,25 @@ jobs:
           JWT_SECRET: test_jwt_secret_key_needs_to_be_at_least_256_bits_for_signature_validation_12345
           JWT_EXPIRATION: 86400000
         run: mvn clean verify
+
+      - name: Upload JaCoCo Coverage Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: jacoco-report
+          path: campusgate/target/site/jacoco/
+          retention-days: 14
+
+      - name: Publish Coverage Summary to Job Summary
+        if: always()
+        run: |
+          echo "## JaCoCo Coverage Report" >> $GITHUB_STEP_SUMMARY
+          echo "Report uploaded as artifact: **jacoco-report**" >> $GITHUB_STEP_SUMMARY
+          if [ -f target/site/jacoco/index.html ]; then
+            echo "Coverage report generated successfully." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Coverage report not found, check if tests ran." >> $GITHUB_STEP_SUMMARY
+          fi
 
       - name: Build Docker Image (Dry Run)
         run: docker build -t campusgate:latest .
