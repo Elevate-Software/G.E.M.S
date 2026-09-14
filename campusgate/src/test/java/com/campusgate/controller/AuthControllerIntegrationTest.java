@@ -1,7 +1,11 @@
 package com.campusgate.controller;
 
+import com.campusgate.repository.AccessCredentialRepository;
+import com.campusgate.repository.EntryLogRepository;
+import com.campusgate.repository.IncidentReportRepository;
 import com.campusgate.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,8 +36,21 @@ class AuthControllerIntegrationTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private EntryLogRepository entryLogRepository;
+
+    @Autowired
+    private AccessCredentialRepository credentialRepository;
+
+    @Autowired
+    private IncidentReportRepository incidentReportRepository;
+
     @BeforeEach
-    void setUp() {
+    @AfterEach
+    void cleanUp() {
+        incidentReportRepository.deleteAll();
+        entryLogRepository.deleteAll();
+        credentialRepository.deleteAll();
         userRepository.deleteAll();
     }
 
