@@ -7,6 +7,7 @@ import com.campusgate.repository.AccessCredentialRepository;
 import com.campusgate.repository.EntryLogRepository;
 import com.campusgate.repository.GateRepository;
 import com.campusgate.repository.UserRepository;
+import com.campusgate.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,7 +31,7 @@ public class ScanService {
     @Transactional
     public ScanResultDTO scanCredential(ScanRequest request, Long scannedById) {
         Gate gate = gateRepository.findById(request.getGateId())
-                .orElseThrow(() -> new RuntimeException("Gate not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Gate not found"));
 
         User scannedBy = null;
         if (scannedById != null) {

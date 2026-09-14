@@ -4,6 +4,11 @@ import com.campusgate.dto.UserDTO;
 import com.campusgate.entity.AccountStatus;
 import com.campusgate.service.UserService;
 import com.campusgate.security.UserDetailsImpl;
+import com.campusgate.dto.UpdateStatusRequest;
+import com.campusgate.dto.RegisterRequest;
+import com.campusgate.service.AuthService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -16,9 +21,9 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
-    private final com.campusgate.service.AuthService authService;
+    private final AuthService authService;
 
-    public UserController(UserService userService, com.campusgate.service.AuthService authService) {
+    public UserController(UserService userService, AuthService authService) {
         this.userService = userService;
         this.authService = authService;
     }
@@ -37,8 +42,8 @@ public class UserController {
 
     @PatchMapping("/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserDTO> updateStatus(@PathVariable Long id, @RequestBody java.util.Map<String, String> body) {
-        AccountStatus status = AccountStatus.valueOf(body.get("status"));
+    public ResponseEntity<UserDTO> updateStatus(@PathVariable Long id, @Valid @RequestBody UpdateStatusRequest body) {
+        AccountStatus status = body.getStatus();
         return ResponseEntity.ok(userService.updateStatus(id, status));
     }
 
@@ -49,7 +54,7 @@ public class UserController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserDTO> createUser(@jakarta.validation.Valid @RequestBody com.campusgate.dto.RegisterRequest request) {
-        return new ResponseEntity<>(authService.register(request), org.springframework.http.HttpStatus.CREATED);
+    public ResponseEntity<UserDTO> createUser(@Valid @RequestBody RegisterRequest request) {
+        return new ResponseEntity<>(authService.register(request), HttpStatus.CREATED);
     }
 }

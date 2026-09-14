@@ -4,6 +4,7 @@ import com.campusgate.dto.UserDTO;
 import com.campusgate.entity.AccountStatus;
 import com.campusgate.entity.User;
 import com.campusgate.repository.UserRepository;
+import com.campusgate.exception.ResourceNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -23,12 +24,12 @@ public class UserService {
     public UserDTO getUserById(Long id) {
         return userRepository.findById(id)
                 .map(this::mapToDTO)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
     public UserDTO updateStatus(Long id, AccountStatus status) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         user.setAccountStatus(status);
         return mapToDTO(userRepository.save(user));
     }

@@ -9,6 +9,8 @@ import com.campusgate.entity.User;
 import com.campusgate.repository.UserRepository;
 import com.campusgate.security.JwtService;
 import com.campusgate.security.UserDetailsImpl;
+import com.campusgate.exception.ConflictException;
+import com.campusgate.exception.ResourceNotFoundException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -30,7 +32,7 @@ public class AuthService {
 
     public UserDTO register(RegisterRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RuntimeException("Email already in use");
+            throw new ConflictException("Email already in use");
         }
         User user = User.builder()
                 .fullName(request.getFullName())
@@ -60,7 +62,7 @@ public class AuthService {
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         
         String token = jwtService.generateToken(new UserDetailsImpl(user));
         return new TokenResponse(token);
@@ -72,9 +74,9 @@ public class AuthService {
 
     public void changePassword(Long userId, String currentPassword, String newPassword) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
-            throw new RuntimeException("Invalid current password");
+            throw new IllegalArgumentException("Invalid current password");
         }
         user.setPasswordHash(passwordEncoder.encode(newPassword));
         userRepository.save(user);
