@@ -48,6 +48,8 @@ public class LoginPage {
 
     public DashboardPage submit() {
         driver.findElement(LOGIN_BUTTON).click();
+        // Wait for the SPA to navigate to the dashboard after the async login API call
+        wait.until(ExpectedConditions.urlContains("/dashboard"));
         return new DashboardPage(driver);
     }
 
