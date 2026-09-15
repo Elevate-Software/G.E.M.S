@@ -3,6 +3,8 @@ package com.campusgate.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,6 +21,8 @@ import java.util.function.Function;
 
 @Service
 public class JwtService {
+
+    private static final Logger log = LoggerFactory.getLogger(JwtService.class);
 
     @Value("${jwt.secret}")
     private String secretKey;
@@ -94,15 +98,24 @@ public class JwtService {
     }
 
     public void blacklistToken(String token) {
-        String jti = extractJti(token);
-        long expiration = extractExpiration(token).getTime() - System.currentTimeMillis();
-        if (expiration > 0) {
-            redisTemplate.opsForValue().set("blacklist:" + jti, "true", expiration, TimeUnit.MILLISECONDS);
+        try {
+            String jti = extractJti(token);
+            long expiration = extractExpiration(token).getTime() - System.currentTimeMillis();
+            if (expiration > 0) {
+                redisTemplate.opsForValue().set("blacklist:" + jti, "true", expiration, TimeUnit.MILLISECONDS);
+            }
+        } catch (Exception e) {
+            log.warn("Could not blacklist token in Redis (Redis may be offline or unconfigured): {}", e.getMessage());
         }
     }
 
     public boolean isTokenBlacklisted(String token) {
-        String jti = extractJti(token);
-        return Boolean.TRUE.equals(redisTemplate.hasKey("blacklist:" + jti));
+        try {
+            String jti = extractJti(token);
+            return Boolean.TRUE.equals(redisTemplate.hasKey("blacklist:" + jti));
+        } catch (Exception e) {
+            log.warn("Could not check token blacklist in Redis (Redis may be offline or unconfigured): {}", e.getMessage());
+            return false;
+        }
     }
 }

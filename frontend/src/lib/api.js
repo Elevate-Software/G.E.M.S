@@ -36,6 +36,10 @@ async function request(path, { method = 'GET', body = null, params = null } = {}
       const data = await res.json().catch(() => null);
       throw new Error(data?.message || 'Invalid email or password');
     }
+    if (path.startsWith('/auth/')) {
+      const data = await res.json().catch(() => null);
+      throw new Error(data?.message || 'Authentication failed');
+    }
     // In Solid Router we'd ideally use navigate('/login') but if outside component scope:
     window.location.href = '/login'; 
     throw new Error('Session expired. Please log in again.');
