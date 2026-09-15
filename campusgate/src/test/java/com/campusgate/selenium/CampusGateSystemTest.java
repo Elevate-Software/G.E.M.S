@@ -104,15 +104,7 @@ class CampusGateSystemTest {
                 "After logout the application should redirect to the login page");
     }
 
-    // -------------------------------------------------------------------------
     // Registration tests
-    // -------------------------------------------------------------------------
-
-    /**
-     * Happy path: a brand-new student account is created, the app auto-logs in,
-     * and Selenium lands on the dashboard.
-     * A timestamp suffix guarantees a unique email on every run.
-     */
     @Test
     @DisplayName("New student registration auto-logs in and loads the dashboard")
     void register_newStudent_shouldRedirectToDashboard() {
@@ -134,11 +126,6 @@ class CampusGateSystemTest {
                 "URL should have left the register page");
     }
 
-    /**
-     * Server-side duplicate: registering with an email that already exists
-     * must keep the user on /register and surface an error.
-     * We use the known VALID_EMAIL which is already in the DB.
-     */
     @Test
     @DisplayName("Duplicate email registration shows an error and stays on register page")
     void register_duplicateEmail_shouldShowError() {
@@ -161,10 +148,6 @@ class CampusGateSystemTest {
                 "Page should stay on /register or display an error when email is already taken");
     }
 
-    /**
-     * Client-side validation: submitting without filling in the name field
-     * must stay on /register without making an API call.
-     */
     @Test
     @DisplayName("Missing required field keeps user on the register page")
     void register_missingName_shouldNotProceed() {
