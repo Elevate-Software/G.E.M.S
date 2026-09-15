@@ -6,6 +6,8 @@ import com.campusgate.dto.TokenResponse;
 import com.campusgate.entity.AccountStatus;
 import com.campusgate.entity.Role;
 import com.campusgate.entity.User;
+import com.campusgate.exception.ConflictException;
+import com.campusgate.exception.ResourceNotFoundException;
 import com.campusgate.repository.UserRepository;
 import com.campusgate.security.JwtService;
 import org.junit.jupiter.api.Test;
@@ -117,5 +119,63 @@ class AuthServiceTest {
 
         assertEquals("new-hash", user.getPasswordHash());
         verify(userRepository).save(user);
+    }
+
+    @Test
+    void register_shouldThrowConflictWhenEmailAlreadyExists() {
+        RegisterRequest request = new RegisterRequest();
+        request.setFullName("Duplicate User");
+        request.setEmail("existing@example.com");
+        request.setPassword("secret123");
+        request.setRole(Role.STUDENT);
+
+        when(userRepository.findByEmail("existing@example.com"))
+                .thenReturn(Optional.of(User.builder().email("existing@example.com").build()));
+
+        assertThrows(ConflictException.class, () -> authService.register(request));
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void login_shouldThrowWhenUserNotFoundAfterAuth() {
+        LoginRequest request = new LoginRequest();
+        request.setEmail("ghost@example.com");
+        request.setPassword("password");
+
+        when(authenticationManager.authenticate(any())).thenReturn(null);
+        when(userRepository.findByEmail("ghost@example.com")).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> authService.login(request));
+    }
+
+    @Test
+    void logout_shouldCallBlacklistOnJwtService() {
+        doNothing().when(jwtService).blacklistToken("some-token");
+        authService.logout("some-token");
+        verify(jwtService).blacklistToken("some-token");
+    }
+
+    @Test
+    void changePassword_shouldThrowWhenCurrentPasswordWrong() {
+        User user = User.builder()
+                .id(8L)
+                .passwordHash("old-hash")
+                .role(Role.STUDENT)
+                .accountStatus(AccountStatus.ACTIVE)
+                .build();
+
+        when(userRepository.findById(8L)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("wrong-password", "old-hash")).thenReturn(false);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> authService.changePassword(8L, "wrong-password", "new-password"));
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void changePassword_shouldThrowWhenUserNotFound() {
+        when(userRepository.findById(999L)).thenReturn(Optional.empty());
+        assertThrows(ResourceNotFoundException.class,
+                () -> authService.changePassword(999L, "any", "any"));
     }
 }

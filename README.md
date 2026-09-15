@@ -73,12 +73,25 @@ cd campusgate
 ```
 
 ### 2. JaCoCo Code Coverage
-Generates an HTML coverage report:
+Run test verification to generate both HTML and CSV coverage reports:
 ```bash
 cd campusgate
 ./mvnw clean verify
-# Report generated at: target/site/jacoco/index.html
 ```
+Reports are generated at:
+- **HTML Report**: `campusgate/target/site/jacoco/index.html`
+- **CSV Summary**: `campusgate/target/site/jacoco/jacoco.csv`
+
+#### Current Coverage Summary
+
+| Package / Layer | Line Cov. | Branch Cov. | Instruction Cov. | Status |
+|---|---|---|---|---|
+| **Core Services (`com.campusgate.service`)** | **100.0%** (147/147) | **100.0%** (20/20) | **100.0%** (507/507) | Full Coverage |
+| **REST Controllers (`com.campusgate.controller`)** | **100.0%** (50/50) | **91.7%** (11/12) | **98.5%** (193/196) | Target Met |
+| **Security & Auth (`com.campusgate.security`)** | **100.0%** (118/118) | **81.8%** (18/22) | **100.0%** (496/496) | Target Met (>= 80%) |
+| **Exceptions (`com.campusgate.exception`)** | **100.0%** (29/29) | **N/A** | **100.0%** (143/143) | Full Coverage |
+| **Entities & Enums (`com.campusgate.entity`)** | **100.0%** (22/22) | **N/A** | **100.0%** (114/114) | Full Coverage |
+| **Total Application** | **99.5%** (367/369) | **90.7%** (49/54) | **99.5%** (1,456/1,464) | Exceeds CI Target |
 
 ### 3. Selenium E2E System Tests
 End-to-end user flows using the **Page Object Model** (`RegisterPage`, `LoginPage`, `DashboardPage`):

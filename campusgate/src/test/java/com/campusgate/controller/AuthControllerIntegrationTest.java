@@ -80,4 +80,117 @@ class AuthControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken", notNullValue()));
     }
+
+    @Test
+    void login_invalidCredentials_shouldReturn401() throws Exception {
+        Map<String, Object> loginRequest = Map.of(
+                "email", "nobody@example.com",
+                "password", "wrongpass"
+        );
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginRequest)))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void logout_withValidToken_shouldReturn204() throws Exception {
+        // First register and login to get a token
+        Map<String, Object> registerRequest = Map.of(
+                "fullName", "Logout User",
+                "email", "logout@example.com",
+                "password", "Pass123!",
+                "role", "STUDENT"
+        );
+        mockMvc.perform(post("/api/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(registerRequest)));
+
+        var loginRes = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "email", "logout@example.com",
+                                "password", "Pass123!"
+                        ))))
+                .andReturn();
+        String token = objectMapper.readTree(loginRes.getResponse().getContentAsString())
+                .get("accessToken").asText();
+
+        mockMvc.perform(post("/api/auth/logout")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void logout_withoutToken_shouldReturn403() throws Exception {
+        // Unauthenticated request to /api/auth/logout should be rejected with 403 Forbidden
+        mockMvc.perform(post("/api/auth/logout"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void changePassword_withCorrectCurrentPassword_shouldReturn200() throws Exception {
+        Map<String, Object> registerRequest = Map.of(
+                "fullName", "Change Pass User",
+                "email", "changepass@example.com",
+                "password", "OldPass123!",
+                "role", "STUDENT"
+        );
+        mockMvc.perform(post("/api/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(registerRequest)));
+
+        var loginRes = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "email", "changepass@example.com",
+                                "password", "OldPass123!"
+                        ))))
+                .andReturn();
+        String token = objectMapper.readTree(loginRes.getResponse().getContentAsString())
+                .get("accessToken").asText();
+
+        mockMvc.perform(post("/api/auth/change-password")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "currentPassword", "OldPass123!",
+                                "newPassword", "NewPass456!"
+                        ))))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void changePassword_withWrongCurrentPassword_shouldReturn400() throws Exception {
+        Map<String, Object> registerRequest = Map.of(
+                "fullName", "Wrong Pass User",
+                "email", "wrongpass@example.com",
+                "password", "Correct123!",
+                "role", "STUDENT"
+        );
+        mockMvc.perform(post("/api/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(registerRequest)));
+
+        var loginRes = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "email", "wrongpass@example.com",
+                                "password", "Correct123!"
+                        ))))
+                .andReturn();
+        String token = objectMapper.readTree(loginRes.getResponse().getContentAsString())
+                .get("accessToken").asText();
+
+        mockMvc.perform(post("/api/auth/change-password")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "currentPassword", "WrongOld!",
+                                "newPassword", "NewPass456!"
+                        ))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Invalid current password"));
+    }
 }
