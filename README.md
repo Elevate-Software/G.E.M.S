@@ -1,161 +1,116 @@
-# CampusGate
+# G.E.M.S — CampusGate
 
-CampusGate is a campus entrance management system built with Spring Boot, PostgreSQL, Redis, Flyway, JWT authentication, and a Vite + Solid frontend. The project models a real-world access-control workflow: a student or visitor arrives at a gate, their credential is validated, and the system records the entry event securely.
+[![Java 21](https://img.shields.io/badge/Java-21-orange.svg)](https://openjdk.org/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3-green.svg)](https://spring.io/projects/spring-boot)
+[![Vite + Solid](https://img.shields.io/badge/Frontend-Solid.js%20%2B%20Vite-blue.svg)](https://www.solidjs.com/)
+[![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions%20%7C%20Jenkins-informational.svg)](https://github.com/Elevate-Software/G.E.M.S)
 
-## Scenario Insight
+CampusGate (Gate Entry Management System) is an access-control platform designed for campus security. It manages user credentials, validates gate entries, logs access events, and enforces role-based access control.
 
-Imagine a student named Nathan arriving on campus. He logs in to the system, his identity is verified, and when he reaches a gate, the security team can validate his access and record the entry. If access is denied or suspicious, the system can flag the event for review. That is the core flow this project is designed to support.
+---
 
-## What the project includes
+## Tech Stack
 
-- Backend API for authentication, user management, and gate scanning
-- PostgreSQL persistence with Flyway migrations
-- Redis support for caching/session-related functionality
-- JWT-based security for protected endpoints
-- A frontend built with Vite and Solid
-- Docker Compose support for local development
+| Layer | Technologies |
+|---|---|
+| **Backend** | Spring Boot 3, Spring Security (JWT), Spring Data JPA, Flyway |
+| **Databases** | PostgreSQL (persistent storage), Redis (token blacklisting & cache) |
+| **Frontend** | Solid.js, Vite, Vanilla CSS, SPA routing |
+| **Testing** | JUnit 5, Mockito, Spring Boot Test, Selenium WebDriver, JaCoCo |
+| **CI / CD** | GitHub Actions, Jenkins (`Jenkinsfile`), Docker & Docker Compose |
 
-## Repository structure
+---
 
-- [campusgate](campusgate) — Spring Boot backend
-- [frontend](frontend) — Vite + Solid frontend
-- [.github/workflows/ci-cd.yml](.github/workflows/ci-cd.yml) — CI pipeline for build and test
+## Quickstart
 
-## Prerequisites
+### Option 1: Run Full Stack with Docker Compose
 
-Before running the app locally, make sure you have:
-
-- Java 21
-- Maven or the Maven wrapper included in the backend folder
-- Node.js and npm
-- Docker Desktop (for PostgreSQL and Redis)
-
-## Backend setup
-
-### 1. Go to the backend folder
-
-```bash
-cd campusgate
-```
-
-### 2. Create your environment file
-
-Copy the sample environment file and update the values if needed:
-
-```bash
-cp .env.example .env
-```
-
-Example values:
-
-```env
-DB_URL=jdbc:postgresql://localhost:5433/campusgate
-DB_NAME=campusgate
-DB_USER=campus_admin
-DB_PASS=campus_pass
-DB_PORT=5433
-REDIS_HOST=localhost
-REDIS_PORT=6379
-JWT_SECRET=replace-this-with-a-strong-secret
-JWT_EXPIRATION=86400000
-```
-
-### 3. Start PostgreSQL and Redis with Docker Compose
-
-```bash
-docker compose up -d db redis
-```
-
-### 4. Run the backend
-
-```bash
-./mvnw spring-boot:run
-```
-
-The backend will start on:
-
-- http://localhost:8080
-
-### 5. Useful backend commands
-
-```bash
-./mvnw clean verify
-./mvnw test
-```
-
-## Frontend setup
-
-### 1. Install frontend dependencies
-
-```bash
-cd frontend
-npm install
-```
-
-### 2. Start the frontend development server
-
-```bash
-npm run dev
-```
-
-The frontend will be available at:
-
-- http://localhost:5173
-
-## Run everything with Docker
-
-From the backend folder, you can build and run the full stack with Docker Compose:
+From the `campusgate/` folder:
 
 ```bash
 cd campusgate
 docker compose up --build
 ```
 
-This will start:
+- **Backend API**: `http://localhost:8080`
+- **PostgreSQL**: `localhost:5433`
+- **Redis**: `localhost:6379`
 
-- the Spring Boot app
-- PostgreSQL
-- Redis
+---
 
-## API overview
+### Option 2: Run Locally for Development
 
-The backend exposes REST endpoints under the following base paths:
-
-- /api/auth — login, registration, logout
-- /api/users — user lookup and account management
-- /api/scan — access scanning and validation
-
-Example flow:
-
-1. Register or log in a user.
-2. Authenticate with the returned JWT token.
-3. Use the token to call protected endpoints such as scan operations.
-
-## Database and migrations
-
-Flyway migrations are stored in:
-
-- [campusgate/src/main/resources/db/migration](campusgate/src/main/resources/db/migration)
-
-These migrations create the database schema for users, gates, access credentials, entry logs, and incident reports.
-
-## CI/CD
-
-The repository includes a GitHub Actions workflow that:
-
-- builds the backend with Maven
-- runs tests
-- starts PostgreSQL and Redis
-- builds a Docker image
-
-## Troubleshooting
-
-If the database connection fails, try resetting the local Docker volumes:
-
+#### 1. Start Database & Cache
 ```bash
 cd campusgate
-docker compose down -v
 docker compose up -d db redis
 ```
 
-If you still see authentication issues, confirm that the values in your environment file match the PostgreSQL container credentials.
+#### 2. Run Backend
+```bash
+cd campusgate
+cp .env.example .env    # Configure local variables if needed
+./mvnw spring-boot:run
+```
+
+#### 3. Run Frontend
+```bash
+cd frontend
+npm install
+npm run dev
+```
+Frontend runs at `http://localhost:5173`.
+
+---
+
+## Testing Pyramid
+
+### 1. Unit & Integration Tests
+Runs business logic and API integration tests against an in-memory/isolated database:
+```bash
+cd campusgate
+./mvnw clean test
+```
+
+### 2. JaCoCo Code Coverage
+Generates an HTML coverage report:
+```bash
+cd campusgate
+./mvnw clean verify
+# Report generated at: target/site/jacoco/index.html
+```
+
+### 3. Selenium E2E System Tests
+End-to-end user flows using the **Page Object Model** (`RegisterPage`, `LoginPage`, `DashboardPage`):
+```bash
+# Run headless (default, CI-friendly)
+./mvnw test -Dtest=CampusGateSystemTest
+
+# Run with visible Chrome browser UI
+./mvnw test -Dtest=CampusGateSystemTest -Dheadless=false
+```
+
+---
+
+## CI / CD Pipelines
+
+### GitHub Actions
+Automated workflow on `push` and `pull_request` to `main`:
+- Spins up PostgreSQL 15 and Redis services
+- Compiles with JDK 21 and runs full test verification
+- Publishes JaCoCo coverage summaries and artifacts
+- Performs container build dry runs
+
+### Jenkins
+Pipeline-as-Code defined in [`Jenkinsfile`](Jenkinsfile):
+- **Stages**: Checkout → Unit & Integration Tests → JaCoCo Coverage Report → Selenium E2E Tests → Docker Image Build
+- Spin up the local Jenkins instance:
+  ```bash
+  cd jenkins
+  docker compose -f docker-compose.jenkins.yml up -d
+  ```
+
+---
+
+## License
+Elevate Software. All rights reserved.
