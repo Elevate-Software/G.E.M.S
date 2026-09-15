@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://campusgate-api.onrender.com/api/:path*"
+      "destination": "https://campusgate-api-m9nu.onrender.com/api/:path*"
     },
     {
       "source": "/(.*)",
