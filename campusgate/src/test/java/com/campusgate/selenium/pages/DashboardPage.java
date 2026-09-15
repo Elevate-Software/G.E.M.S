@@ -26,7 +26,8 @@ public class DashboardPage {
 
     public DashboardPage(WebDriver driver) {
         this.driver = driver;
-        this.wait   = new WebDriverWait(driver, Duration.ofSeconds(10));
+        // 30s timeout to handle cold-start latency on Render free tier
+        this.wait   = new WebDriverWait(driver, Duration.ofSeconds(30));
     }
 
     public DashboardPage waitForLoad() {
@@ -71,6 +72,8 @@ public class DashboardPage {
 
     public LoginPage logout() {
         wait.until(ExpectedConditions.elementToBeClickable(LOGOUT_BUTTON)).click();
+        // Wait for the SPA's async navigation to /login to complete
+        wait.until(ExpectedConditions.urlContains("/login"));
         return new LoginPage(driver);
     }
 
